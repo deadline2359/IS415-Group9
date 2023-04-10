@@ -1,4 +1,4 @@
-pacman::p_load(shiny, shinyWidgets, readr, sf, vctrs, tmap, spatstat, sfdep, tidyr, tidyverse, maptools)
+pacman::p_load(shiny, shinyWidgets, readr, sf, vctrs, tmap, spatstat, sfdep, tidyr, tidyverse, maptools, SpatialAcc)
 
 
 # Aspatial
@@ -10,7 +10,9 @@ nursing_data <- readr::read_csv("data/aspatial/nursing_home_data_geocoded.csv")
 pcn_data <- readr::read_csv("data/aspatial/PCN Clinic Listing (by PCN) With Postal Code.csv")
 
 
-
+## OD Matrix
+ODMatrix_eldercare <- readr::read_csv("data/aspatial/OD_Matrix.csv", skip = 0)
+ODMatrix_PCN_Clinic <- readr::read_csv("data/aspatial/Output OD Matrix PCN Clinics 2.csv", skip = 0)
 
 # Geospatial
 mpsz_original <- st_read(dsn = "data/geospatial/MPSZ-2019",
@@ -22,19 +24,33 @@ chas_sf <- st_read(dsn = "data/geospatial/CHAS Clinics Shapefile",
                    layer = "CHAS Clinics") %>%
   st_transform(crs = 3414)
 
-pcn_data <- pcn_data[rowSums(is.na(pcn_data)) == 0, ]
-pcn_sf <- st_as_sf(pcn_data, coords=c("results.LONGITUDE", "results.LATITUDE"), crs=4326) %>% st_transform(crs = 3414)
+eldercare <- st_read(dsn = "data/geospatial/eldercare", 
+                     layer = "ELDERCARE") %>%
+  st_transform(crs = 3414)
+
+hexagons_2019 <- st_read(dsn = "data/geospatial/Hexagon 2019 Shapefile", 
+                         layer = "Hexagon_2019") %>%
+  st_transform(crs = 3414)
 
 
+hexagons <- st_read(dsn = "data/geospatial/hexagons", 
+                         layer = "hexagons") %>%
+  st_transform(crs = 3414)
+
+PCN_Clinics <- st_read(dsn = "data/geospatial/PCN Network Clinics Shapefile", 
+                       layer = "PCN Network Clinics") %>%
+  st_transform(crs = 3414)
 
 
 # Data Preparation
 
-## CHAS - remove rows with NAs
+## Remove rows with NAs
 chas_sf <- chas_sf[rowSums(is.na(chas_sf)) == 0, ]
+pcn_data <- pcn_data[rowSums(is.na(pcn_data)) == 0, ]
 
 
 ## Retrieve Geospatial Data
+pcn_sf <- st_as_sf(pcn_data, coords=c("results.LONGITUDE", "results.LATITUDE"), crs=4326) %>% st_transform(crs = 3414)
 gp_sf <- st_as_sf(gp_data, coords=c("Long", "Lat"), crs=4326) %>% st_transform(crs = 3414)
 hospital_sf <- st_as_sf(hospital_data, coords=c("Long", "Lat"), crs=4326) %>% st_transform(crs = 3414)
 poly_sf <- st_as_sf(poly_data, coords=c("Long", "Lat"), crs=4326) %>% st_transform(crs = 3414)
@@ -60,17 +76,35 @@ pop_data$...1  = toupper(pop_data$...1)
 total_pop <- merge(x = mpsz, y = pop_data, by.x = "SUBZONE_N", by.y = "...1", all.x = TRUE)
 
 
+## Tidying OD Matrix
+distmat_eldercare <- ODMatrix_eldercare %>%
+  select(origin_id, destination_id, total_cost) %>%
+  spread(destination_id, total_cost)%>%
+  select(c(-c('origin_id')))
+distmat_eldercare_km <- as.matrix(distmat_eldercare/1000)
+
+distmat_PCN_Clinics <- ODMatrix_PCN_Clinic %>%
+  select(origin_id, destination_id, total_cost) %>%
+  spread(destination_id, total_cost)%>%
+  select(c(-c('origin_id')))
+distmat_PCN_Clinics_km <- as.matrix(distmat_PCN_Clinics/1000)
+
+# set 100
+hexagons_2019 <- hexagons_2019 %>%
+  select(fid) %>%
+  mutate(demand = 100)
+
+hexagons <- hexagons %>%
+  select(fid) %>%
+  mutate(demand = 100)
+
+
 
 
 
 
 
 function(input, output, session) {
-    # aspatialDataInput <- reactive({
-    #   switch(input$aspatialDataQn, 
-    #          "Resident Population" = aspatialData$dataChosen
-    #          )
-    # })
     
     output$aspatialDataPlot <- renderTmap({
 
@@ -107,9 +141,6 @@ function(input, output, session) {
                 set.view = 11,
                 set.bounds = TRUE)
     })
-    
-    
-    
     
     
     output$KDEDataPlot <- renderPlot({
@@ -188,9 +219,6 @@ function(input, output, session) {
       else if(input$KDEQn == "CHAS Clinics"){
         pppChosen <- chas_ppp.km
       }
-      else if(input$KDEQn == "Bus Stops"){
-        pppChosen <- busstop_ppp.km
-      }
       
       #bandwidth methods
       if(input$KDEBandwidthQn == "bw.diggle"){
@@ -220,5 +248,73 @@ function(input, output, session) {
       
       plot(pppChosen_bw, main = input$KDEQn)
 
+    })
+    
+    
+    output$accessibilityPlot <- renderTmap({
+      
+      if(input$accDataQn == "General Practitioners (GPs)"){
+        accData <- gp_sf
+      }
+      else if(input$accDataQn == "Hospitals"){
+        accData <- hospital_sf
+      }
+      else if(input$accDataQn == "Polyclinics"){
+        accData <- poly_sf
+      }
+      else if(input$accDataQn == "Nursing Homes"){
+        accData <- nursing_sf
+      }
+      else if(input$accDataQn == "Primary Care Networks (PCN)"){
+        accData <- PCN_Clinics %>%
+          select(fid, results.PO) %>%
+          mutate(capacity = 100)
+        
+        distmat_data <- distmat_PCN_Clinics_km
+        hexagon_spec <- hexagons_2019
+      }
+      else if(input$accDataQn == "CHAS Clinics"){
+        accData <- chas_sf
+      } 
+      else if(input$accDataQn == "Eldercare"){
+        accData <- eldercare %>%
+          select(fid, ADDRESSPOS) %>%
+          mutate(capacity = 100)
+        
+        distmat_data <- distmat_eldercare_km
+        hexagon_spec <- hexagons
+      }
+      
+      
+      
+      
+      acc_data_fun <- data.frame(ac(hexagon_spec$demand,
+                                        accData$capacity,
+                                        distmat_data, 
+                                        d0 = 50,
+                                        power = 0.5, 
+                                        family = input$accFunQn))
+      
+      
+      colnames(acc_data_fun) <- "accHansen"
+      acc_data_fun <- tibble::as_tibble(acc_data_fun)
+      hexagon_data_fun <- bind_cols(hexagon_spec, acc_data_fun)
+
+      mapex_2019 <- st_bbox(hexagon_spec)
+
+      tm_shape(hexagon_data_fun,
+               bbox = mapex_2019) +
+        tm_fill(col = "accHansen",
+                n = 10,
+                style = "quantile",
+                border.col = "black",
+                border.lwd = 1) +
+        tm_shape(eldercare) +
+        tm_symbols(size = 0.1) +
+        tm_grid(lwd = 0.1, alpha = 0.5) +
+        tm_view(set.zoom.limits = c(11,14),
+                set.view = 11,
+                set.bounds = TRUE)
+      
     })
 }

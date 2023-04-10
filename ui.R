@@ -1,12 +1,4 @@
 #
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 pacman::p_load(shiny, shinyWidgets, readr, sf, vctrs, tmap, spatstat, sfdep, tidyr, tidyverse, maptools)
 
 # Define UI for application that draws a histogram
@@ -45,7 +37,7 @@ fluidPage(
                                    tmapOutput("aspatialDataPlot",
                                               width = "100%",
                                               height = 400)
-                                  )
+                                    )
                                  )
                                 )
                                ))
@@ -91,6 +83,39 @@ fluidPage(
            )
         ))
      ),
-     tabPanel("Accessbility")
+     tabPanel("Accessibility",
+              fluidPage(
+                sidebarLayout(
+                  sidebarPanel(
+                    prettyRadioButtons(inputId = "accDataQn",
+                                       label = "Medical Facility:",
+                                       choices = c("General Practitioners (GPs)",
+                                                   "Hospitals",
+                                                   "Polyclinics",
+                                                   "Nursing Homes",
+                                                   "CHAS Clinics",
+                                                   "Primary Care Networks (PCN)",
+                                                   "Eldercare"
+                                       ),
+                                       selected = "General Practitioners (GPs)"
+                    ),
+                    prettyRadioButtons(inputId = "accFunQn",
+                                       label = "Accessibility Measure Function:",
+                                       choices = c("Hansen",
+                                                   "KD2SFCA",
+                                                   "SAM",
+                                                   "2SFCA"
+                                       ),
+                                       selected = "Hansen"
+                    )
+                  ),
+                  mainPanel(
+                    tmapOutput("accessibilityPlot",
+                               width = "100%",
+                               height = 400)
+                  )
+                  )
+                )
+              )
+     )
   )
-)
