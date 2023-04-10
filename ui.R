@@ -30,8 +30,9 @@ fluidPage(
                                  mainPanel(
                                    tmapOutput("aspatialDataPlot",
                                               width = "100%",
-                                              height = 400)
-                                    )
+                                              height = 400),
+                                   p("Note: Graphs may take a while to load. Thank you for your patience.")
+                                  )
                                  )
                                 )
                 ),
@@ -72,7 +73,8 @@ fluidPage(
          mainPanel(
            plotOutput("KDEDataPlot",
               width = "100%",
-              height = 400)
+              height = 400),
+           p("Note: Graphs may take a while to load. Thank you for your patience.")
            )
         ))
      ),
@@ -99,12 +101,23 @@ fluidPage(
                                                    "2SFCA"
                                        ),
                                        selected = "Hansen"
+                    ),
+                    prettyRadioButtons(inputId = "accColourQn",
+                                       label = "Colour:",
+                                       choices = c("Red" = "Reds",
+                                                   "Blue" = "Blues",
+                                                   "Green" = "Greens",
+                                                   "Orange" = "Oranges",
+                                                   "Purple" = "Purples"
+                                       ),
+                                       selected = "Oranges"
                     )
                   ),
                   mainPanel(
                     tmapOutput("accessibilityPlot",
                                width = "100%",
-                               height = 400)
+                               height = 400),
+                    p("Note: Graphs may take a while to load. Thank you for your patience.")
                   )
                   )
                 )

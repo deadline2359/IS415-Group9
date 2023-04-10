@@ -1,4 +1,4 @@
-pacman::p_load(shiny, shinyWidgets, sf, vctrs, tmap, SpatialAcc)
+pacman::p_load(shiny, shinyWidgets, sf, vctrs, tmap, SpatialAcc, tidyverse)
 
 
 # Geospatial
@@ -203,6 +203,7 @@ function(input, output, session) {
                bbox = mapex_2019) +
         tm_fill(col = "accHansen",
                 n = 10,
+                palette = input$accColourQn,
                 style = "quantile",
                 border.col = "black",
                 border.lwd = 1) +
