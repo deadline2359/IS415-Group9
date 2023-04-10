@@ -1,105 +1,50 @@
-pacman::p_load(shiny, shinyWidgets, readr, sf, vctrs, tmap, spatstat, sfdep, tidyr, tidyverse, maptools, SpatialAcc)
+pacman::p_load(shiny, shinyWidgets, sf, vctrs, tmap, SpatialAcc)
 
-
-# Aspatial
-pop_data <- readr::read_csv("data/aspatial/Resident Population 2015.csv", skip=11)[1:379,1:19]
-gp_data <- readr::read_csv("data/aspatial/gp_data_geocoded.csv")[,-1]
-hospital_data <- readr::read_csv("data/aspatial/hospital_data_geocoded.csv")
-poly_data <- readr::read_csv("data/aspatial/polyclinic_data_geocoded.csv")
-nursing_data <- readr::read_csv("data/aspatial/nursing_home_data_geocoded.csv")
-pcn_data <- readr::read_csv("data/aspatial/PCN Clinic Listing (by PCN) With Postal Code.csv")
-
-
-## OD Matrix
-ODMatrix_eldercare <- readr::read_csv("data/aspatial/OD_Matrix.csv", skip = 0)
-ODMatrix_PCN_Clinic <- readr::read_csv("data/aspatial/Output OD Matrix PCN Clinics 2.csv", skip = 0)
 
 # Geospatial
 mpsz_original <- st_read(dsn = "data/geospatial/MPSZ-2019",
                 layer = "MPSZ-2019") %>%
   st_transform(crs = 3414)
-mpsz <- st_make_valid(mpsz_original)
-
-chas_sf <- st_read(dsn = "data/geospatial/CHAS Clinics Shapefile",
-                   layer = "CHAS Clinics") %>%
-  st_transform(crs = 3414)
-
-eldercare <- st_read(dsn = "data/geospatial/eldercare", 
-                     layer = "ELDERCARE") %>%
-  st_transform(crs = 3414)
-
-hexagons_2019 <- st_read(dsn = "data/geospatial/Hexagon 2019 Shapefile", 
-                         layer = "Hexagon_2019") %>%
-  st_transform(crs = 3414)
 
 
-hexagons <- st_read(dsn = "data/geospatial/hexagons", 
-                         layer = "hexagons") %>%
-  st_transform(crs = 3414)
+## Models
+gp_sf <- readRDS(file = "data/models/sf/gp_sf.rds")
+hospital_sf <- readRDS(file = "data/models/sf/hospital_sf.rds")
+nursing_sf <- readRDS(file = "data/models/sf/nursing_sf.rds")
+poly_sf <- readRDS(file = "data/models/sf/poly_sf.rds")
+chas_sf <- readRDS(file = "data/models/sf/chas_sf.rds")
+pcn_sf <- readRDS(file = "data/models/sf/pcn_sf.rds")
 
-PCN_Clinics <- st_read(dsn = "data/geospatial/PCN Network Clinics Shapefile", 
-                       layer = "PCN Network Clinics") %>%
-  st_transform(crs = 3414)
+gp_ppp.km <- readRDS(file = "data/models/ppp_km/gp_ppp_km.rds")
+hospital_ppp.km <- readRDS(file = "data/models/ppp_km/hospital_ppp_km.rds")
+nursing_ppp.km <- readRDS(file = "data/models/ppp_km/nursing_ppp_km.rds")
+poly_ppp.km <- readRDS(file = "data/models/ppp_km/poly_ppp_km.rds")
+chas_ppp.km <- readRDS(file = "data/models/ppp_km/chas_ppp_km.rds")
+pcn_ppp.km <- readRDS(file = "data/models/ppp_km/pcn_ppp_km.rds")
 
+distmat_hospital_km <- readRDS(file = "data/models/distmat/distmat_Hospitals_km.rds")
+distmat_nursing_km <- readRDS(file = "data/models/distmat/distmat_Nursing_Homes_km.rds")
+distmat_poly_km <- readRDS(file = "data/models/distmat/distmat_Polyclinics_km.rds")
+distmat_chas_km <- readRDS(file = "data/models/distmat/distmat_CHAS_Clinics_km.rds")
+distmat_pcn_km <- readRDS(file = "data/models/distmat/distmat_PCN_Clinics_km.rds")
+distmat_eldercare_km <- readRDS(file = "data/models/distmat/distmat_eldercare_km.rds")
 
-# Data Preparation
+hexagons <- read_rds("data/models/hexagons/hexagons.rds")
+hexagons_2019 <- read_rds("data/models/hexagons/hexagons_2019.rds")
 
-## Remove rows with NAs
-chas_sf <- chas_sf[rowSums(is.na(chas_sf)) == 0, ]
-pcn_data <- pcn_data[rowSums(is.na(pcn_data)) == 0, ]
+hospital_demand <- readRDS(file = "data/models/demand/Hospital.rds")
+nursing_demand <- readRDS(file = "data/models/demand/Nursing_Homes.rds")
+poly_demand <- readRDS(file = "data/models/demand/Polyclinics.rds")
+chas_demand <- readRDS(file = "data/models/demand/CHAS_Clinics.rds")
+pcn_demand <- readRDS(file = "data/models/demand/PCN_Clinics.rds")
+eldercare_demand <- readRDS(file = "data/models/demand/eldercare.rds")
 
-
-## Retrieve Geospatial Data
-pcn_sf <- st_as_sf(pcn_data, coords=c("results.LONGITUDE", "results.LATITUDE"), crs=4326) %>% st_transform(crs = 3414)
-gp_sf <- st_as_sf(gp_data, coords=c("Long", "Lat"), crs=4326) %>% st_transform(crs = 3414)
-hospital_sf <- st_as_sf(hospital_data, coords=c("Long", "Lat"), crs=4326) %>% st_transform(crs = 3414)
-poly_sf <- st_as_sf(poly_data, coords=c("Long", "Lat"), crs=4326) %>% st_transform(crs = 3414)
-nursing_sf <- st_as_sf(nursing_data, coords=c("Long", "Lat"), crs=4326) %>% st_transform(crs = 3414)
-
-
-## Excluding Unnecessary Data Points
-gp_sf <- st_intersection(mpsz, gp_sf)
-hospital_sf <- st_intersection(mpsz, hospital_sf)
-poly_sf <- st_intersection(mpsz, poly_sf)
-nursing_sf <- st_intersection(mpsz, nursing_sf)
-pcn_sf <- st_intersection(mpsz, pcn_sf)
-chas_sf <- st_intersection(mpsz, chas_sf)
-
-
-## Merge MPSZ with Population Data
-### Convert Data Types
-pop_is_char <- sapply(pop_data[c(2:19)], is.character)
-pop_data[c(2:19)][ , pop_is_char] <- as.data.frame(apply(pop_data[c(2:19)][ , pop_is_char], 2, as.numeric))
-
-### Total Population
-pop_data$...1  = toupper(pop_data$...1)
-total_pop <- merge(x = mpsz, y = pop_data, by.x = "SUBZONE_N", by.y = "...1", all.x = TRUE)
-
-
-## Tidying OD Matrix
-distmat_eldercare <- ODMatrix_eldercare %>%
-  select(origin_id, destination_id, total_cost) %>%
-  spread(destination_id, total_cost)%>%
-  select(c(-c('origin_id')))
-distmat_eldercare_km <- as.matrix(distmat_eldercare/1000)
-
-distmat_PCN_Clinics <- ODMatrix_PCN_Clinic %>%
-  select(origin_id, destination_id, total_cost) %>%
-  spread(destination_id, total_cost)%>%
-  select(c(-c('origin_id')))
-distmat_PCN_Clinics_km <- as.matrix(distmat_PCN_Clinics/1000)
-
-# set 100
-hexagons_2019 <- hexagons_2019 %>%
-  select(fid) %>%
-  mutate(demand = 100)
-
-hexagons <- hexagons %>%
-  select(fid) %>%
-  mutate(demand = 100)
-
-
-
+hospital_data <- readRDS(file = "data/models/accData/Hospital.rds")
+nursing_data <- readRDS(file = "data/models/accData/Nursing_Homes.rds")
+poly_data <- readRDS(file = "data/models/accData/Polyclinics.rds")
+chas_data <- readRDS(file = "data/models/accData/CHAS_Clinics.rds")
+pcn_data <- readRDS(file = "data/models/accData/PCN_Clinics.rds")
+eldercare_data <- readRDS(file = "data/models/accData/eldercare.rds")
 
 
 
@@ -126,6 +71,7 @@ function(input, output, session) {
       else if(input$aspatialDataQn == "CHAS Clinics"){
         aspatialDataChosen <- chas_sf
       }
+      
       tmap_mode("plot")
       tmap_options(check.and.fix = TRUE) +
       tm_shape(total_pop) +
@@ -145,60 +91,6 @@ function(input, output, session) {
     
     output$KDEDataPlot <- renderPlot({
       # KDE
-      ## Converting sf data frames to sp's Spatial class
-      mpsz_spatial <- as_Spatial(mpsz_original)
-      gp_spatial <- as_Spatial(gp_sf)
-      hospital_spatial <- as_Spatial(hospital_sf)
-      poly_spatial <- as_Spatial(poly_sf)
-      nursing_spatial <- as_Spatial(nursing_sf)
-      chas_spatial <- as_Spatial(chas_sf)
-      pcn_spatial <- as_Spatial(pcn_sf)
-
-
-      ## Converting sp's *Spatial** Class into Generic sp Format
-      mpsz_sp <- as(mpsz_spatial, "SpatialPolygons")
-      gp_sp <- as(gp_spatial, "SpatialPoints")
-      hospital_sp <- as(hospital_spatial, "SpatialPoints")
-      poly_sp <- as(poly_spatial, "SpatialPoints")
-      nursing_sp <- as(nursing_spatial, "SpatialPoints")
-      chas_sp <- as(chas_spatial, "SpatialPoints")
-      pcn_sp <- as(pcn_spatial, "SpatialPoints")
-
-      ## Converting Generic sp Format into spatstat's ppp Format
-      gp_ppp <- as(gp_sp, "ppp")
-      hospital_ppp <- as(hospital_sp, "ppp")
-      poly_ppp <- as(poly_sp, "ppp")
-      nursing_ppp <- as(nursing_sp, "ppp")
-      chas_ppp <- as(chas_sp, "ppp")
-      pcn_ppp <- as(pcn_sp, "ppp")
-
-      ## Duplicated Points
-      gp_ppp_jit <- rjitter(gp_ppp,retry = TRUE,
-                            nsim = 1,
-                            drop = TRUE)
-
-      nursing_ppp_jit <- rjitter(nursing_ppp,retry = TRUE,
-                                 nsim = 1,
-                                 drop = TRUE)
-
-      chas_ppp_jit <- rjitter(chas_ppp,retry = TRUE,
-                              nsim = 1,
-                              drop = TRUE)
-
-      mpsz_owin <- as(mpsz_sp, "owin")
-      gp_ppp = gp_ppp_jit[mpsz_owin]
-      hospital_ppp = hospital_ppp[mpsz_owin]
-      poly_ppp = poly_ppp[mpsz_owin]
-      nursing_ppp = nursing_ppp_jit[mpsz_owin]
-      chas_ppp = chas_ppp_jit[mpsz_owin]
-      pcn_ppp = pcn_ppp[mpsz_owin]
-
-      gp_ppp.km <- rescale(gp_ppp, 1000, "km")
-      hospital_ppp.km <- rescale(hospital_ppp, 1000, "km")
-      poly_ppp.km <- rescale(poly_ppp, 1000, "km")
-      nursing_ppp.km <- rescale(nursing_ppp, 1000, "km")
-      chas_ppp.km <- rescale(chas_ppp, 1000, "km")
-      pcn_ppp.km <- rescale(pcn_ppp, 1000, "km")
       
       # data
       if(input$KDEQn == "General Practitioners (GPs)"){
@@ -253,34 +145,39 @@ function(input, output, session) {
     
     output$accessibilityPlot <- renderTmap({
       
-      if(input$accDataQn == "General Practitioners (GPs)"){
-        accData <- gp_sf
-      }
-      else if(input$accDataQn == "Hospitals"){
-        accData <- hospital_sf
+      if(input$accDataQn == "Hospitals"){
+        accData <- hospital_data
+        accDemand <- hospital_demand
+        distmat_data <- distmat_hospital_km
+        hexagon_spec <- hexagons_2019
       }
       else if(input$accDataQn == "Polyclinics"){
-        accData <- poly_sf
+        accData <- poly_data
+        accDemand <- poly_demand
+        distmat_data <- distmat_poly_km
+        hexagon_spec <- hexagons_2019
       }
       else if(input$accDataQn == "Nursing Homes"){
-        accData <- nursing_sf
+        accData <- nursing_data
+        accDemand <- nursing_demand
+        distmat_data <- distmat_pcn_km
+        hexagon_spec <- hexagons_2019
       }
       else if(input$accDataQn == "Primary Care Networks (PCN)"){
-        accData <- PCN_Clinics %>%
-          select(fid, results.PO) %>%
-          mutate(capacity = 100)
-        
+        accData <- pcn_data
+        accDemand <- pcn_demand
         distmat_data <- distmat_PCN_Clinics_km
         hexagon_spec <- hexagons_2019
       }
       else if(input$accDataQn == "CHAS Clinics"){
-        accData <- chas_sf
+        accData <- chas_data
+        accDemand <- chas_demand
+        distmat_data <- distmat_chas_km
+        hexagon_spec <- hexagons_2019
       } 
       else if(input$accDataQn == "Eldercare"){
-        accData <- eldercare %>%
-          select(fid, ADDRESSPOS) %>%
-          mutate(capacity = 100)
-        
+        accData <- eldercare_data
+        accDemand <- eldercare_demand
         distmat_data <- distmat_eldercare_km
         hexagon_spec <- hexagons
       }
@@ -289,7 +186,7 @@ function(input, output, session) {
       
       
       acc_data_fun <- data.frame(ac(hexagon_spec$demand,
-                                        accData$capacity,
+                                        accDemand$capacity,
                                         distmat_data, 
                                         d0 = 50,
                                         power = 0.5, 
@@ -309,9 +206,8 @@ function(input, output, session) {
                 style = "quantile",
                 border.col = "black",
                 border.lwd = 1) +
-        tm_shape(eldercare) +
+        tm_shape(accData) +
         tm_symbols(size = 0.1) +
-        tm_grid(lwd = 0.1, alpha = 0.5) +
         tm_view(set.zoom.limits = c(11,14),
                 set.view = 11,
                 set.bounds = TRUE)

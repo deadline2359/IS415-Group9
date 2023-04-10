@@ -1,5 +1,5 @@
 #
-pacman::p_load(shiny, shinyWidgets, readr, sf, vctrs, tmap, spatstat, sfdep, tidyr, tidyverse, maptools)
+pacman::p_load(shiny, shinyWidgets, vctrs, tmap)
 
 # Define UI for application that draws a histogram
 fluidPage(
@@ -9,20 +9,14 @@ fluidPage(
                collapsible = TRUE,
                tabPanel("Home",
                         fluidPage(
-                           h1("Build in Progress")
+                           h1("Analysing the Accessibility of Medical Facilities")
                           )
                         ),
-               tabPanel("Data",
+               tabPanel("Data Visualisation",
                         fluidPage(
-                          tabsetPanel(
-                            tabPanel("Data Sources",
-                                     br()
-                            ),
-                            tabPanel("Data Visualisation",
-                               br(),
                                sidebarLayout(
                                  sidebarPanel(
-                                   prettyRadioButtons(inputId = "aspatialDataQn",
+                                   selectInput(inputId = "aspatialDataQn",
                                     label = "Medical Facility:",
                                     choices = c("General Practitioners (GPs)",
                                                 "Hospitals",
@@ -40,13 +34,12 @@ fluidPage(
                                     )
                                  )
                                 )
-                               ))
                 ),
      tabPanel("Kernel Density Estimation",
         fluidPage(
          sidebarLayout(
            sidebarPanel(
-             prettyRadioButtons(inputId = "KDEQn",
+             selectInput(inputId = "KDEQn",
                 label = "Medical Facility:",
                 choices = c("General Practitioners (GPs)",
                             "Hospitals",
@@ -87,17 +80,16 @@ fluidPage(
               fluidPage(
                 sidebarLayout(
                   sidebarPanel(
-                    prettyRadioButtons(inputId = "accDataQn",
+                    selectInput(inputId = "accDataQn",
                                        label = "Medical Facility:",
-                                       choices = c("General Practitioners (GPs)",
-                                                   "Hospitals",
+                                       choices = c("Hospitals",
                                                    "Polyclinics",
                                                    "Nursing Homes",
                                                    "CHAS Clinics",
                                                    "Primary Care Networks (PCN)",
                                                    "Eldercare"
                                        ),
-                                       selected = "General Practitioners (GPs)"
+                                       selected = "Hospitals"
                     ),
                     prettyRadioButtons(inputId = "accFunQn",
                                        label = "Accessibility Measure Function:",
