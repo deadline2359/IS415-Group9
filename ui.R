@@ -7,7 +7,7 @@
 #    http://shiny.rstudio.com/
 #
 
-pacman::p_load(shiny, shinyWidgets, readr, sf, tmap, spatstat, sfdep, tidyverse, maptools, raster, SpatialAcc, ggstatsplot, reshape2, rgdal, spNetwork)
+pacman::p_load(shiny, shinyWidgets, readr, sf, vctrs, tmap, spatstat, sfdep, tidyr, tidyverse, maptools)
 
 # Define UI for application that draws a histogram
 fluidPage(
@@ -17,15 +17,8 @@ fluidPage(
                collapsible = TRUE,
                tabPanel("Home",
                         fluidPage(
-                          tabsetPanel(
-                            sidebarLayout(
-                              sidebarPanel(),
-                              mainPanel(
-                                p("Build in Progress")
-                              )
-                            )
+                           h1("Build in Progress")
                           )
-                        )
                         ),
                tabPanel("Data",
                         fluidPage(
@@ -33,28 +26,71 @@ fluidPage(
                             tabPanel("Data Sources",
                                      br()
                             ),
-                            tabPanel("Aspatial Data",
-                                     br(),
-                                     sidebarLayout(
-                                       sidebarPanel(
-                                         prettyRadioButtons(inputId = "aspatialDataQn", 
-                                                            label = "Show Data:", 
-                                                            choices = c("Resident Population",
-                                                                        "General Practitioner", 
-                                                                        "Hospitals",
-                                                                        "Polyclinics",
-                                                                        "Nursing Homes",
-                                                                        "Primary Care Networks"),
-                                                            selected = "Resident Population")
-                                       ),
-                                       mainPanel(tableOutput('aspatial_data_table'))
-                                     )
-                            ),
-                            tabPanel("Geospatial Data",
-                                     br()
-                            )
-                ))),
-               tabPanel("EDA"),
-               tabPanel("Kernel Density Estimation"),
-               tabPanel("Accessbility")),
+                            tabPanel("Data Visualisation",
+                               br(),
+                               sidebarLayout(
+                                 sidebarPanel(
+                                   prettyRadioButtons(inputId = "aspatialDataQn",
+                                    label = "Medical Facility:",
+                                    choices = c("General Practitioners (GPs)",
+                                                "Hospitals",
+                                                "Polyclinics",
+                                                "Nursing Homes",
+                                                "CHAS Clinics",
+                                                "Primary Care Networks (PCN)"
+                                                ),
+                                    selected = "General Practitioners (GPs)")
+                                  ),
+                                 mainPanel(
+                                   tmapOutput("aspatialDataPlot",
+                                              width = "100%",
+                                              height = 400)
+                                  )
+                                 )
+                                )
+                               ))
+                ),
+     tabPanel("Kernel Density Estimation",
+        fluidPage(
+         sidebarLayout(
+           sidebarPanel(
+             prettyRadioButtons(inputId = "KDEQn",
+                label = "Medical Facility:",
+                choices = c("General Practitioners (GPs)",
+                            "Hospitals",
+                            "Polyclinics",
+                            "Nursing Homes",
+                            "CHAS Clinics",
+                            "Primary Care Networks (PCN)"
+                ),
+                selected = "General Practitioners (GPs)"
+              ),
+             prettyRadioButtons(inputId = "KDEBandwidthQn",
+                                label = "Automatic Bandwidth Selection Method:",
+                                choices = c("Cross Validated (bw.diggle)" = "bw.diggle",
+                                            "Cronie-Van Lieshout's Criterion (bw.CvL)" = "bw.CvL",
+                                            "Scott's Rule (bw.scott)" = "bw.scott",
+                                            "Likelihood Cross Validation (bw.ppl)" = "bw.ppl"
+                                ),
+                                selected = "bw.diggle"
+             ),
+             prettyRadioButtons(inputId = "KDEKernelQn",
+                                label = "Kernel:",
+                                choices = c("Gaussian" = "gaussian",
+                                            "Epanechnikov" = "epanechnikov",
+                                            "Quartic" = "quartic",
+                                            "Disc" = "disc"
+                                ),
+                                selected = "gaussian"
+             )
+        ),
+         mainPanel(
+           plotOutput("KDEDataPlot",
+              width = "100%",
+              height = 400)
+           )
+        ))
+     ),
+     tabPanel("Accessbility")
+  )
 )
