@@ -5,9 +5,10 @@ account: is415-group9
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 8800501
-bundleId: 7072656
+bundleId: 7073429
 url: https://is415-group9.shinyapps.io/IS415-Group9/
-when: 1681163785.31985
-lastSyncTime: 1681163785.31987
+when: 1681181772.79936
+lastSyncTime: 1681181772.79938
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: .RData

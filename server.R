@@ -1,13 +1,13 @@
-pacman::p_load(shiny, shinyWidgets, sf, vctrs, tmap, SpatialAcc, tidyverse)
+pacman::p_load(shiny, shinyWidgets, sf, tmap, SpatialAcc, tidyverse, spatstat)
 
 
 # Geospatial
-mpsz_original <- st_read(dsn = "data/geospatial/MPSZ-2019",
-                layer = "MPSZ-2019") %>%
-  st_transform(crs = 3414)
+mpsz_original <- read_rds("data/models/mpsz_original.rds")
 
 
 ## Models
+total_pop <- read_rds("data/models/total_pop.rds")
+
 gp_sf <- readRDS(file = "data/models/sf/gp_sf.rds")
 hospital_sf <- readRDS(file = "data/models/sf/hospital_sf.rds")
 nursing_sf <- readRDS(file = "data/models/sf/nursing_sf.rds")
@@ -47,8 +47,6 @@ pcn_data <- readRDS(file = "data/models/accData/PCN_Clinics.rds")
 eldercare_data <- readRDS(file = "data/models/accData/eldercare.rds")
 
 
-
-
 function(input, output, session) {
     
     output$aspatialDataPlot <- renderTmap({
@@ -78,10 +76,11 @@ function(input, output, session) {
         tm_polygons(
           "Total...2",
           style = "cont",
-          alpha = 0.4) +
+          alpha = 0.8,
+          palette = input$aspatialBGColourQn) +
         tm_fill() +
         tm_shape(aspatialDataChosen) +
-        tm_dots(col  = "blue",
+        tm_dots(col  = input$aspatialSymbolColourQn,
                size = 0.05) +
         tm_view(set.zoom.limits = c(11,14),
                 set.view = 11,
@@ -193,7 +192,7 @@ function(input, output, session) {
                                         family = input$accFunQn))
       
       
-      colnames(acc_data_fun) <- "accHansen"
+      colnames(acc_data_fun) <- "accDataFun"
       acc_data_fun <- tibble::as_tibble(acc_data_fun)
       hexagon_data_fun <- bind_cols(hexagon_spec, acc_data_fun)
 
@@ -201,7 +200,7 @@ function(input, output, session) {
 
       tm_shape(hexagon_data_fun,
                bbox = mapex_2019) +
-        tm_fill(col = "accHansen",
+        tm_fill(col = "accDataFun",
                 n = 10,
                 palette = input$accColourQn,
                 style = "quantile",

@@ -1,22 +1,31 @@
 #
-pacman::p_load(shiny, shinyWidgets, vctrs, tmap)
+pacman::p_load(shiny, shinyWidgets, tmap, tidyverse, shinythemes)
 
 # Define UI for application that draws a histogram
 fluidPage(
-  
+  theme = shinytheme("flatly"),
     navbarPage("Dr Go Where",
                fluid = TRUE,
                collapsible = TRUE,
+               
                tabPanel("Home",
                         fluidPage(
-                           h1("Analysing the Accessibility of Medical Facilities")
+                           h1("Analysing the Accessibility of Medical Facilities"),
+                           a("GitHub Repo", href="https://github.com/deadline2359/IS415-Group9"),
+                           h2("Problem Statement"),
+                           p("In Singapore, our country is experiencing a rapidly ageing population, around one in four citizens, will be aged 65 and above by 2030. In response to this issue, the Ministry of Health (MOH) and the government have been making plans to increase the number of healthcare facilities in Singapore. 
+                              In the Masterplan 2020, MOH highlighted its priorities on the shift towards community care and to provide more accessible care for elderly patients, by building community care facilities such as nursing homes, home care services, and day rehabilitation centers. 
+                             The aim of these policies is to improve the continuum of care for elderly patients, reduce readmission rates and ease the burden on acute hospitals. Hence, there was also a growing need for effective distribution of health services and for healthcare to be more accessible within the community."),
+                           h2("Objectives of our Project"),
+                           p("Our project aims to utilize R methods to conduct spatial point pattern analysis of healthcare distribution and geographical modelling of maps. 
+                             The main objective is to determine the accessibility and distribution of healthcare services for both the elderly population and Singaporeans of all ages.")
                           )
                         ),
                tabPanel("Data Visualisation",
                         fluidPage(
                                sidebarLayout(
                                  sidebarPanel(
-                                   selectInput(inputId = "aspatialDataQn",
+                                   selectizeInput(inputId = "aspatialDataQn",
                                     label = "Medical Facility:",
                                     choices = c("General Practitioners (GPs)",
                                                 "Hospitals",
@@ -25,7 +34,27 @@ fluidPage(
                                                 "CHAS Clinics",
                                                 "Primary Care Networks (PCN)"
                                                 ),
-                                    selected = "General Practitioners (GPs)")
+                                    selected = "General Practitioners (GPs)"),
+                                   prettyRadioButtons(inputId = "aspatialBGColourQn",
+                                                      label = "Colour of Background:",
+                                                      choices = c("Red" = "Reds",
+                                                                  "Blue" = "Blues",
+                                                                  "Green" = "Greens",
+                                                                  "Orange" = "Oranges",
+                                                                  "Purple" = "Purples"
+                                                      ),
+                                                      selected = "Oranges"
+                                    ),
+                                   prettyRadioButtons(inputId = "aspatialSymbolColourQn",
+                                                      label = "Colour of Symbol:",
+                                                      choices = c("Red" = "red",
+                                                                  "Blue" = "blue",
+                                                                  "Green" = "green",
+                                                                  "Orange" = "orange",
+                                                                  "Purple" = "purple"
+                                                      ),
+                                                      selected = "blue"
+                                   )
                                   ),
                                  mainPanel(
                                    tmapOutput("aspatialDataPlot",
@@ -40,7 +69,7 @@ fluidPage(
         fluidPage(
          sidebarLayout(
            sidebarPanel(
-             selectInput(inputId = "KDEQn",
+             selectizeInput(inputId = "KDEQn",
                 label = "Medical Facility:",
                 choices = c("General Practitioners (GPs)",
                             "Hospitals",
@@ -82,7 +111,7 @@ fluidPage(
               fluidPage(
                 sidebarLayout(
                   sidebarPanel(
-                    selectInput(inputId = "accDataQn",
+                    selectizeInput(inputId = "accDataQn",
                                        label = "Medical Facility:",
                                        choices = c("Hospitals",
                                                    "Polyclinics",
