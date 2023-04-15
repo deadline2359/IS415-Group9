@@ -14,6 +14,7 @@ nursing_sf <- readRDS(file = "data/models/sf/nursing_sf.rds")
 poly_sf <- readRDS(file = "data/models/sf/poly_sf.rds")
 chas_sf <- readRDS(file = "data/models/sf/chas_sf.rds")
 pcn_sf <- readRDS(file = "data/models/sf/pcn_sf.rds")
+eldercare_sf <- readRDS(file = "data/models/sf/eldercare_sf.rds")
 
 gp_ppp.km <- readRDS(file = "data/models/ppp_km/gp_ppp_km.rds")
 hospital_ppp.km <- readRDS(file = "data/models/ppp_km/hospital_ppp_km.rds")
@@ -21,6 +22,7 @@ nursing_ppp.km <- readRDS(file = "data/models/ppp_km/nursing_ppp_km.rds")
 poly_ppp.km <- readRDS(file = "data/models/ppp_km/poly_ppp_km.rds")
 chas_ppp.km <- readRDS(file = "data/models/ppp_km/chas_ppp_km.rds")
 pcn_ppp.km <- readRDS(file = "data/models/ppp_km/pcn_ppp_km.rds")
+eldercare_ppp.km <- readRDS(file = "data/models/ppp_km/eldercare_ppp_km.rds")
 
 distmat_hospital_km <- readRDS(file = "data/models/distmat/distmat_Hospitals_km.rds")
 distmat_nursing_km <- readRDS(file = "data/models/distmat/distmat_Nursing_Homes_km.rds")
@@ -68,6 +70,9 @@ function(input, output, session) {
       }
       else if(input$aspatialDataQn == "CHAS Clinics"){
         aspatialDataChosen <- chas_sf
+      }
+      else if(input$aspatialDataQn == "Eldercare Centres"){
+        aspatialDataChosen <- eldercare_sf
       }
       
       tmap_mode("plot")
@@ -130,6 +135,9 @@ function(input, output, session) {
       }
       else if(input$KDEQn == "CHAS Clinics"){
         pppChosen <- chas_ppp.km
+      }
+      else if(input$KDEQn == "Eldercare Centres"){
+        pppChosen <- eldercare_ppp.km
       }
       
       #bandwidth methods
@@ -217,7 +225,7 @@ function(input, output, session) {
         distmat_data <- distmat_chas_km
         hexagon_spec <- hexagons_2019
       } 
-      else if(input$accDataQn == "Eldercare"){
+      else if(input$accDataQn == "Eldercare Centres"){
         accData <- eldercare_data
         accDemand <- eldercare_demand
         distmat_data <- distmat_eldercare_km
@@ -305,7 +313,7 @@ function(input, output, session) {
         distmat_data <- distmat_chas_km
         hexagon_spec <- hexagons_2019
       } 
-      else if(input$accDataQn == "Eldercare"){
+      else if(input$accDataQn == "Eldercare Centres"){
         accData <- eldercare_data
         accDemand <- eldercare_demand
         distmat_data <- distmat_eldercare_km

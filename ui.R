@@ -29,14 +29,14 @@ fluidPage(
                                  sidebarPanel(
                                    selectizeInput(inputId = "aspatialDataQn",
                                                   label = "Medical Facility:",
-                                                  choices = c("General Practitioners (GPs)",
-                                                              "Hospitals",
+                                                  choices = c("Hospitals",
                                                               "Polyclinics",
                                                               "Nursing Homes",
                                                               "CHAS Clinics",
-                                                              "Primary Care Networks (PCN)"
+                                                              "Primary Care Networks (PCN)",
+                                                              "Eldercare Centres"
                                                               ),
-                                    selected = "General Practitioners (GPs)"),
+                                    selected = "Hospitals"),
                                    prettyRadioButtons(inputId = "aspatialBGColourQn",
                                                       label = "Colour of Background:",
                                                       choices = c("Red" = "Reds",
@@ -86,14 +86,14 @@ fluidPage(
            sidebarPanel(
              selectizeInput(inputId = "KDEQn",
                 label = "Medical Facility:",
-                choices = c("General Practitioners (GPs)",
-                            "Hospitals",
+                choices = c("Hospitals",
                             "Polyclinics",
                             "Nursing Homes",
                             "CHAS Clinics",
-                            "Primary Care Networks (PCN)"
+                            "Primary Care Networks (PCN)",
+                            "Eldercare Centres"
                 ),
-                selected = "General Practitioners (GPs)"
+                selected = "Hospitals"
               ),
              prettyRadioButtons(inputId = "KDEBandwidthQn",
                                 label = "Automatic Bandwidth Selection Method:",
@@ -146,7 +146,7 @@ fluidPage(
                                                    "Nursing Homes",
                                                    "CHAS Clinics",
                                                    "Primary Care Networks (PCN)",
-                                                   "Eldercare"
+                                                   "Eldercare Centres"
                                        ),
                                        selected = "Hospitals"
                     ),
