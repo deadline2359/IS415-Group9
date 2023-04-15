@@ -5,6 +5,7 @@ pacman::p_load(shiny, shinyWidgets, tmap, tidyverse, shinythemes)
 fluidPage(
   theme = shinytheme("flatly"),
     navbarPage("Dr Go Where",
+               id = "tabs",
                fluid = TRUE,
                collapsible = TRUE,
                
@@ -22,18 +23,19 @@ fluidPage(
                           )
                         ),
                tabPanel("Data Visualisation",
+                        value = "aspatialDataTab",
                         fluidPage(
                                sidebarLayout(
                                  sidebarPanel(
                                    selectizeInput(inputId = "aspatialDataQn",
-                                    label = "Medical Facility:",
-                                    choices = c("General Practitioners (GPs)",
-                                                "Hospitals",
-                                                "Polyclinics",
-                                                "Nursing Homes",
-                                                "CHAS Clinics",
-                                                "Primary Care Networks (PCN)"
-                                                ),
+                                                  label = "Medical Facility:",
+                                                  choices = c("General Practitioners (GPs)",
+                                                              "Hospitals",
+                                                              "Polyclinics",
+                                                              "Nursing Homes",
+                                                              "CHAS Clinics",
+                                                              "Primary Care Networks (PCN)"
+                                                              ),
                                     selected = "General Practitioners (GPs)"),
                                    prettyRadioButtons(inputId = "aspatialBGColourQn",
                                                       label = "Colour of Background:",
@@ -54,18 +56,31 @@ fluidPage(
                                                                   "Purple" = "purple"
                                                       ),
                                                       selected = "blue"
+                                   ),
+                                   fluidRow(
+                                     column(
+                                       12,
+                                       actionButton("aspatialButton", "Generate"), 
+                                       align = "center"
+                                     )
                                    )
                                   ),
                                  mainPanel(
-                                   tmapOutput("aspatialDataPlot",
-                                              width = "100%",
-                                              height = 400),
+                                   conditionalPanel(condition = "input.tabs == 'aspatialDataTab' && input.aspatialButton > 0", tmapOutput("aspatialDataPlot",
+                                                                                       width = "100%",
+                                                                                       height = "80vh")),
+                                   conditionalPanel(condition = "input.tabs == 'aspatialDataTab' && input.aspatialButton == 0", column(width = 12,
+                                                                                            align="center",
+                                                                                            style = "height: 80vh; padding: 20px",
+                                                                                            h1("Please choose your choices from the panel and click the button.")
+                                                                                           )),
                                    p("Note: Graphs may take a while to load. Thank you for your patience.")
                                   )
                                  )
                                 )
                 ),
      tabPanel("Kernel Density Estimation",
+              value = "KDETab",
         fluidPage(
          sidebarLayout(
            sidebarPanel(
@@ -97,17 +112,30 @@ fluidPage(
                                             "Disc" = "disc"
                                 ),
                                 selected = "gaussian"
+             ),
+             fluidRow(
+               column(
+                 12,
+                 actionButton("KDEButton", "Generate"), 
+                 align = "center"
+               )
              )
         ),
          mainPanel(
-           plotOutput("KDEDataPlot",
-              width = "100%",
-              height = 400),
+           conditionalPanel(condition = "input.tabs == 'KDETab' && input.KDEButton > 0", plotOutput("KDEDataPlot",
+                                                                       width = "100%",
+                                                                       height = "80vh")),
+           conditionalPanel(condition = "input.tabs == 'KDETab' && input.KDEButton == 0", column(width = 12,
+                                                                    align="center",
+                                                                    style = "height: 80vh; padding: 20px",
+                                                                    h1("Please choose your choices from the panel and click the button.")
+           )),
            p("Note: Graphs may take a while to load. Thank you for your patience.")
            )
         ))
      ),
      tabPanel("Accessibility",
+              value = "accTab",
               fluidPage(
                 sidebarLayout(
                   sidebarPanel(
@@ -140,12 +168,24 @@ fluidPage(
                                                    "Purple" = "Purples"
                                        ),
                                        selected = "Oranges"
+                    ),
+                    fluidRow(
+                      column(
+                        12,
+                        actionButton("accButton", "Generate"), 
+                        align = "center"
+                      )
                     )
                   ),
                   mainPanel(
-                    tmapOutput("accessibilityPlot",
-                               width = "100%",
-                               height = 400),
+                    conditionalPanel(condition = "input.tabs == 'accTab' && input.accButton > 0", tmapOutput("accessibilityPlot",
+                                                                                                             width = "100%",
+                                                                                                             height = "80vh")),
+                    conditionalPanel(condition = "input.tabs == 'accTab' && input.accButton == 0", column(width = 12,
+                                                                                                          align="center",
+                                                                                                          style = "height: 80vh; padding: 20px",
+                                                                                                          h1("Please choose your choices from the panel and click the button.")
+                    )),
                     p("Note: Graphs may take a while to load. Thank you for your patience.")
                   )
                   )

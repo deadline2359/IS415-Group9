@@ -48,9 +48,9 @@ eldercare_data <- readRDS(file = "data/models/accData/eldercare.rds")
 
 
 function(input, output, session) {
-    
-    output$aspatialDataPlot <- renderTmap({
-
+  
+    # Aspatial
+    aspatialDataInput <- eventReactive(input$aspatialButton, {
       if(input$aspatialDataQn == "General Practitioners (GPs)"){
         aspatialDataChosen <- gp_sf
       }
@@ -72,7 +72,7 @@ function(input, output, session) {
       
       tmap_mode("plot")
       tmap_options(check.and.fix = TRUE) +
-      tm_shape(total_pop) +
+        tm_shape(total_pop) +
         tm_polygons(
           "Total...2",
           style = "cont",
@@ -81,17 +81,38 @@ function(input, output, session) {
         tm_fill() +
         tm_shape(aspatialDataChosen) +
         tm_dots(col  = input$aspatialSymbolColourQn,
-               size = 0.05) +
+                size = 0.05) +
         tm_view(set.zoom.limits = c(11,14),
                 set.view = 11,
                 set.bounds = TRUE)
     })
     
+    output$aspatialDataPlot <- renderTmap({
+      input$aspatialDataInput
+      if (is.null(aspatialDataInput())){
+        return(NULL)
+      } else{
+        # Progress Bar
+        dat <- data.frame(x = numeric(0), y = numeric(0))
+        withProgress(message = 'Generating...', value = 0, {
+          n <- 10
+          for (i in 1:n) {
+            dat <- rbind(dat, data.frame(x = rnorm(1), y = rnorm(1)))
+            incProgress(1/n, detail = paste("Loading part", i, "..."))
+            Sys.sleep(0.1)
+          }
+          aspatialDataInput()
+        })
+      }
+    })
+  
+  
     
-    output$KDEDataPlot <- renderPlot({
-      # KDE
-      
-      # data
+    
+    
+  
+    # KDE
+    kdeDataInput <- eventReactive(input$KDEButton, {
       if(input$KDEQn == "General Practitioners (GPs)"){
         pppChosen <- gp_ppp.km
       }
@@ -138,12 +159,34 @@ function(input, output, session) {
       }
       
       plot(pppChosen_bw, main = input$KDEQn)
-
     })
     
+    output$KDEDataPlot <- renderPlot({
+      input$kdeDataInput
+      if (is.null(kdeDataInput())){
+        return(NULL)
+      } else{
+        # Progress Bar
+        dat <- data.frame(x = numeric(0), y = numeric(0))
+        withProgress(message = 'Generating...', value = 0, {
+          n <- 10
+          for (i in 1:n) {
+            dat <- rbind(dat, data.frame(x = rnorm(1), y = rnorm(1)))
+            incProgress(1/n, detail = paste("Loading part", i, "..."))
+            Sys.sleep(0.1)
+          }
+          kdeDataInput()
+        })
+      }
+  })
     
-    output$accessibilityPlot <- renderTmap({
-      
+    
+    
+    
+    
+    
+    # Accessibility
+    accDataInput <- eventReactive(input$accButton, {
       if(input$accDataQn == "Hospitals"){
         accData <- hospital_data
         accDemand <- hospital_demand
@@ -165,7 +208,7 @@ function(input, output, session) {
       else if(input$accDataQn == "Primary Care Networks (PCN)"){
         accData <- pcn_data
         accDemand <- pcn_demand
-        distmat_data <- distmat_PCN_Clinics_km
+        distmat_data <- distmat_pcn_km
         hexagon_spec <- hexagons_2019
       }
       else if(input$accDataQn == "CHAS Clinics"){
@@ -181,23 +224,21 @@ function(input, output, session) {
         hexagon_spec <- hexagons
       }
       
-      
-      
-      
       acc_data_fun <- data.frame(ac(hexagon_spec$demand,
-                                        accDemand$capacity,
-                                        distmat_data, 
-                                        d0 = 50,
-                                        power = 0.5, 
-                                        family = input$accFunQn))
+                                    accDemand$capacity,
+                                    distmat_data, 
+                                    d0 = 50,
+                                    power = 0.5, 
+                                    family = input$accFunQn))
       
       
       colnames(acc_data_fun) <- "accDataFun"
       acc_data_fun <- tibble::as_tibble(acc_data_fun)
       hexagon_data_fun <- bind_cols(hexagon_spec, acc_data_fun)
-
+      
       mapex_2019 <- st_bbox(hexagon_spec)
-
+      
+      tmap_mode("view")
       tm_shape(hexagon_data_fun,
                bbox = mapex_2019) +
         tm_fill(col = "accDataFun",
@@ -211,6 +252,24 @@ function(input, output, session) {
         tm_view(set.zoom.limits = c(11,14),
                 set.view = 11,
                 set.bounds = TRUE)
-      
+    })
+    
+    output$accessibilityPlot <- renderTmap({
+      input$accDataInput
+      if (is.null(accDataInput())){
+        return(NULL)
+      } else{
+        # Progress Bar
+        dat <- data.frame(x = numeric(0), y = numeric(0))
+        withProgress(message = 'Generating...', value = 0, {
+          n <- 10
+          for (i in 1:n) {
+            dat <- rbind(dat, data.frame(x = rnorm(1), y = rnorm(1)))
+            incProgress(1/n, detail = paste("Loading part", i, "..."))
+            Sys.sleep(0.1)
+          }
+          accDataInput()
+        })
+      }
     })
 }
