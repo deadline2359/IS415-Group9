@@ -180,12 +180,18 @@ fluidPage(
                   mainPanel(
                     conditionalPanel(condition = "input.tabs == 'accTab' && input.accButton > 0", tmapOutput("accessibilityPlot",
                                                                                                              width = "100%",
-                                                                                                             height = "80vh")),
+                                                                                                             height = "45vh")
+                    ),
+                    conditionalPanel(condition = "input.tabs == 'accTab' && input.accButton > 0", plotOutput("accessibilityBoxPlot",
+                                                                                                              width = "100%",
+                                                                                                              height = "35vh")
+                    ),
                     conditionalPanel(condition = "input.tabs == 'accTab' && input.accButton == 0", column(width = 12,
                                                                                                           align="center",
                                                                                                           style = "height: 80vh; padding: 20px",
                                                                                                           h1("Please choose your choices from the panel and click the button.")
-                    )),
+                      )
+                    ),
                     p("Note: Graphs may take a while to load. Thank you for your patience.")
                   )
                   )

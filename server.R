@@ -1,4 +1,4 @@
-pacman::p_load(shiny, shinyWidgets, sf, tmap, SpatialAcc, tidyverse, spatstat)
+pacman::p_load(shiny, shinyWidgets, sf, tmap, SpatialAcc, tidyverse, spatstat, ggplot2)
 
 
 # Geospatial
@@ -185,7 +185,7 @@ function(input, output, session) {
     
     
     
-    # Accessibility
+    # Accessibility Map
     accDataInput <- eventReactive(input$accButton, {
       if(input$accDataQn == "Hospitals"){
         accData <- hospital_data
@@ -238,7 +238,6 @@ function(input, output, session) {
       
       mapex_2019 <- st_bbox(hexagon_spec)
       
-      tmap_mode("view")
       tm_shape(hexagon_data_fun,
                bbox = mapex_2019) +
         tm_fill(col = "accDataFun",
@@ -270,6 +269,81 @@ function(input, output, session) {
           }
           accDataInput()
         })
+      }
+    })
+    
+    
+    # Accessibility Boxplot
+    accBoxPlotDataInput <- eventReactive(input$accButton, {
+      if(input$accDataQn == "Hospitals"){
+        accData <- hospital_data
+        accDemand <- hospital_demand
+        distmat_data <- distmat_hospital_km
+        hexagon_spec <- hexagons_2019
+      }
+      else if(input$accDataQn == "Polyclinics"){
+        accData <- poly_data
+        accDemand <- poly_demand
+        distmat_data <- distmat_poly_km
+        hexagon_spec <- hexagons_2019
+      }
+      else if(input$accDataQn == "Nursing Homes"){
+        accData <- nursing_data
+        accDemand <- nursing_demand
+        distmat_data <- distmat_pcn_km
+        hexagon_spec <- hexagons_2019
+      }
+      else if(input$accDataQn == "Primary Care Networks (PCN)"){
+        accData <- pcn_data
+        accDemand <- pcn_demand
+        distmat_data <- distmat_pcn_km
+        hexagon_spec <- hexagons_2019
+      }
+      else if(input$accDataQn == "CHAS Clinics"){
+        accData <- chas_data
+        accDemand <- chas_demand
+        distmat_data <- distmat_chas_km
+        hexagon_spec <- hexagons_2019
+      } 
+      else if(input$accDataQn == "Eldercare"){
+        accData <- eldercare_data
+        accDemand <- eldercare_demand
+        distmat_data <- distmat_eldercare_km
+        hexagon_spec <- hexagons
+      }
+      
+      acc_data_fun <- data.frame(ac(hexagon_spec$demand,
+                                    accDemand$capacity,
+                                    distmat_data, 
+                                    d0 = 50,
+                                    power = 0.5, 
+                                    family = input$accFunQn))
+      
+      
+      colnames(acc_data_fun) <- "accDataFun"
+      acc_data_fun <- tibble::as_tibble(acc_data_fun)
+      hexagon_data_fun <- bind_cols(hexagon_spec, acc_data_fun)
+      
+      
+      boxPlot_data <- st_join(hexagon_data_fun, mpsz_original, 
+                              join = st_intersects)
+      
+      ggplot(data=boxPlot_data, 
+             aes(y = log(accDataFun), 
+                 x= factor(REGION_N, level=c('WEST REGION', 'NORTH REGION', 'CENTRAL REGION', 'NORTH-EAST REGION', 'EAST REGION')))) +
+        geom_boxplot() + 
+        xlab("Region") + 
+        ylab("Log(Accessibility)")
+    })
+    
+    
+    output$accessibilityBoxPlot <- renderPlot({
+      input$accBoxPlotDataInput
+      if (is.null(accBoxPlotDataInput())){
+        return(NULL)
+      } else{
+        accBoxPlotDataInput()
+        
       }
     })
 }
