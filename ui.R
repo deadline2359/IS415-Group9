@@ -1,5 +1,5 @@
 #
-pacman::p_load(shiny, shinyWidgets, tmap, tidyverse, shinythemes)
+pacman::p_load(shiny, shinyWidgets, tmap, tidyverse, shinythemes, plotly)
 
 # Define UI for application that draws a histogram
 fluidPage(
@@ -37,6 +37,25 @@ fluidPage(
                                                               "Eldercare Centres"
                                                               ),
                                     selected = "Hospitals"),
+                                   prettyRadioButtons(inputId = "aspatialSexQn",
+                                                      label = "Sex:",
+                                                      choices = c("Total Population",
+                                                                  "Male Population",
+                                                                  "Female Population"
+                                                      ),
+                                                      selected = "Total Population"
+                                   ),
+                                   selectizeInput(inputId = "aspatialAgeQn",
+                                                  label = "Age:",
+                                                  choices = c(c("Total" = "Total", 
+                                                                "0-14 years (Children)" = "0-14",
+                                                                "15-24 years (Early Working Age)" = "15-24",
+                                                                "25-54 years (Prime Working Age)" = "25-54",
+                                                                "55-64 years (Mature Working Age)" = "55-64",
+                                                                "65 years and over (Elderly)" = "65 & over")
+                                                  ),
+                                                  selected = "Total"
+                                    ),
                                    prettyRadioButtons(inputId = "aspatialBGColourQn",
                                                       label = "Colour of Background:",
                                                       choices = c("Red" = "Reds",
@@ -46,7 +65,7 @@ fluidPage(
                                                                   "Purple" = "Purples"
                                                       ),
                                                       selected = "Oranges"
-                                    ),
+                                   ),
                                    prettyRadioButtons(inputId = "aspatialSymbolColourQn",
                                                       label = "Colour of Symbol:",
                                                       choices = c("Red" = "red",
@@ -182,7 +201,7 @@ fluidPage(
                                                                                                              width = "100%",
                                                                                                              height = "45vh")
                     ),
-                    conditionalPanel(condition = "input.tabs == 'accTab' && input.accButton > 0", plotOutput("accessibilityBoxPlot",
+                    conditionalPanel(condition = "input.tabs == 'accTab' && input.accButton > 0", plotlyOutput("accessibilityBoxPlot",
                                                                                                               width = "100%",
                                                                                                               height = "35vh")
                     ),
@@ -197,5 +216,16 @@ fluidPage(
                   )
                 )
               )
+     # tabPanel(
+     #   tags$a(
+     #     href="https://newsite.com", 
+     #     tags$img(src="github.svg", 
+     #              title="Example Image Link", 
+     #              width="25",
+     #              height="25",
+     #              style = "margin: 0px; padding: 0px; display: inline-block"),
+     #     style = "margin: 0px; padding: 0px; display: inline-block"
+     #   )
+     # )
      )
   )

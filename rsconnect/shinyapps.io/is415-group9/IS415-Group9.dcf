@@ -5,10 +5,10 @@ account: is415-group9
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 8800501
-bundleId: 7094104
+bundleId: 7095850
 url: https://is415-group9.shinyapps.io/IS415-Group9/
-when: 1681595659.92212
-lastSyncTime: 1681595659.92214
+when: 1681657999.67596
+lastSyncTime: 1681657999.67597
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData
+ignoredFiles: .RData|www/github.svg

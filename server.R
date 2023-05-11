@@ -1,4 +1,4 @@
-pacman::p_load(shiny, shinyWidgets, sf, tmap, SpatialAcc, tidyverse, spatstat, ggplot2)
+pacman::p_load(shiny, shinyWidgets, sf, tmap, SpatialAcc, tidyverse, spatstat, ggplot2, plotly)
 
 
 # Geospatial
@@ -6,7 +6,9 @@ mpsz_original <- read_rds("data/models/mpsz_original.rds")
 
 
 ## Models
-total_pop <- read_rds("data/models/total_pop.rds")
+total_pop <- read_rds("data/models/pop/total_pop.rds")
+male_pop <- read_rds("data/models/pop/male_pop.rds")
+female_pop <- read_rds("data/models/pop/female_pop.rds")
 
 gp_sf <- readRDS(file = "data/models/sf/gp_sf.rds")
 hospital_sf <- readRDS(file = "data/models/sf/hospital_sf.rds")
@@ -75,11 +77,21 @@ function(input, output, session) {
         aspatialDataChosen <- eldercare_sf
       }
       
+      if(input$aspatialSexQn == "Total Population"){
+        aspatialPopChosen <- total_pop
+      }
+      else if(input$aspatialSexQn == "Male Population"){
+        aspatialPopChosen <- male_pop
+      }
+      else if(input$aspatialSexQn == "Female Population"){
+        aspatialPopChosen <- female_pop
+      }
+      
       tmap_mode("plot")
       tmap_options(check.and.fix = TRUE) +
-        tm_shape(total_pop) +
+        tm_shape(aspatialPopChosen) +
         tm_polygons(
-          "Total...2",
+          input$aspatialAgeQn,
           style = "cont",
           alpha = 0.8,
           palette = input$aspatialBGColourQn) +
@@ -210,7 +222,7 @@ function(input, output, session) {
       else if(input$accDataQn == "Nursing Homes"){
         accData <- nursing_data
         accDemand <- nursing_demand
-        distmat_data <- distmat_pcn_km
+        distmat_data <- distmat_nursing_km
         hexagon_spec <- hexagons_2019
       }
       else if(input$accDataQn == "Primary Care Networks (PCN)"){
@@ -344,8 +356,7 @@ function(input, output, session) {
         ylab("Log(Accessibility)")
     })
     
-    
-    output$accessibilityBoxPlot <- renderPlot({
+    output$accessibilityBoxPlot <- renderPlotly({
       input$accBoxPlotDataInput
       if (is.null(accBoxPlotDataInput())){
         return(NULL)
